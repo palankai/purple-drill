@@ -55,3 +55,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Local files, downloads, etc.
+_local
