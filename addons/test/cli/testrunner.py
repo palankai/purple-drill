@@ -65,10 +65,6 @@ class Test(Command):
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         parser.add_argument(
-            '-d', dest="database", default=config["db_name"],
-            help="database name (default=%s)" % config["db_name"]
-        )
-        parser.add_argument(
             'tests', nargs="*",
             help="can be a list of any number of test modules, classes and test \
             methods."

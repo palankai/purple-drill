@@ -9,7 +9,11 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+ADD / /usr/src
 ADD /addons /mnt/extra-addons
 
-USER odoo
+WORKDIR /usr/src
+RUN python setup.py develop
 
+WORKDIR /var/lib/odoo
+USER odoo
