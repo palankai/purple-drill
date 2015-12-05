@@ -33,16 +33,18 @@ class Test(Command):
     """
 
     def run(self, args):
-        options, openerp_args = self.parse_args(args)
+        options = self.parse_args(args)
         if options.scratch:
             purpledrill.drop_database(options.database)
 
         self.set_logging(options.log in ['init', 'all'])
-
+        init = options.init and dict.fromkeys(options.init.split(','), 1) or {}
+        update = options.update and dict.fromkeys(options.update.split(','), 1) or {}
         with purpledrill.openerp_env(
             db_name=options.database,
             without_demo=options.without_demo,
-            *openerp_args
+            init=init,
+            update=update
         ):
             config['skipif'] = options.skipif
             with self.coverage_report(options.cover):
@@ -102,17 +104,9 @@ class Test(Command):
         return addon_name
 
     def parse_args(self, args):
-        runner_args = args
-        openerp_args = []
-        try:
-            index = args.index('--')
-            runner_args = args[:index]
-            openerp_args = args[index+1:]
-        except ValueError:
-            pass
         parser = self.get_parser()
-        options = parser.parse_args(runner_args)
-        return options, openerp_args
+        options = parser.parse_args(args)
+        return options
 
     def get_parser(self):
         doc_paras = self.__doc__.split('\n\n')
@@ -128,7 +122,15 @@ class Test(Command):
         )
         parser.add_argument(
             '--scratch', dest='scratch', action='store_true',
-            help="Recreate database before test."
+            help="Recreate database before test"
+        )
+        parser.add_argument(
+            '-i', '--init', dest='init', default='',
+            help="Init modules, coma separated list"
+        )
+        parser.add_argument(
+            '-u', '--update', dest='update', default='',
+            help="Update modules, coma separated list"
         )
         parser.add_argument(
             '--without-demo', dest='without_demo',
