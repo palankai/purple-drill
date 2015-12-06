@@ -33,6 +33,7 @@ class Screwdriver(Command):
         else:
             update['screwdriver'] = 1
 
+        total_changes = 0
         # First round, gather data, mark modules
         with purpledrill.openerp_env(
             db_name=options.database,
@@ -59,11 +60,17 @@ class Screwdriver(Command):
                 )
                 if action:
                     m.state_update(action, [m.state])
+                    total_changes += 1
                     _logger.info('Module %s marked %s', m.name, action)
-            env.cr.commit()
-            upgrader = env['base.module.upgrade'].create({})
-            upgrader.upgrade_module()
-            _logger.info('Changes applied')
+
+            if total_changes:
+                _logger.info('Appling %s modification', total_changes)
+                upgrader = env['base.module.upgrade'].create({})
+                env.cr.commit()
+                upgrader.upgrade_module()
+                _logger.info('Changes applied')
+            else:
+                _logger.info('No addon modification')
 
     def get_applied_tweaks(self, env, forced):
         Tweak = env["screwdriver.tweak"]

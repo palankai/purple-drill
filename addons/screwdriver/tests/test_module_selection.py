@@ -74,6 +74,12 @@ class TestUniformVersion(unittest.TestCase):
             api.get_version('9.0', False),
         )
 
+    def test_absent_module_version_to_complex(self):
+        self.assertEquals(
+            api.get_version('9.0', 'absent'),
+            'absent'
+        )
+    
     def test_dotless_module_version_to_complex(self):
         self.assertEquals(
             api.get_version('9.0', '1'),

@@ -41,8 +41,8 @@ def get_action(expected_version, available_version, installed_version, state):
 
 
 def get_version(release, module):
-    if module is False:
-        return False
+    if module is False or module == 'absent':
+        return module
     if module.count('.') >= 2:
         return module
     return '%s.%s' % (release, module)
