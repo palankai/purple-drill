@@ -9,7 +9,7 @@ import psycopg2
 def openerp_env(*args, **kwargs):
     configure(*args, **kwargs)
     ensure_database()
-    openerp.service.server.start(preload=[], stop=True)
+    #openerp.service.server.start(preload=[], stop=True)
     with openerp.api.Environment.manage():
         registry = openerp.modules.registry.RegistryManager.get(
             tools.config['db_name']

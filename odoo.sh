@@ -16,6 +16,10 @@ EXPOSE="-p 8069:8069"
 CMD="docker run -ti --rm $LINKS $VOLUMES $DATA"
 
 case "$1" in
+    screwdriver)
+        shift
+        exec $CMD purple-drill-demo -- screwdriver $@
+        ;;
     test)
         shift
         exec $CMD purple-drill-demo -- test $@
