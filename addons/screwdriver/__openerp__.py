@@ -6,7 +6,7 @@
     'author': "Csaba Palankai",
     'category': 'Extra Tools',
     'license': 'LGPL-3',
-    'version': '1.0',
+    'version': '1.1',
     'depends': ['base'],
     'data': [
         'security/ir.model.access.csv'

@@ -38,14 +38,9 @@ class Test(Command):
             purpledrill.drop_database(options.database)
 
         self.set_logging(options.log in ['init', 'all'])
-        init = options.init and dict.fromkeys(options.init.split(','), 1) or {}
-        update = options.update and dict.fromkeys(options.update.split(','), 1) or {}
-        with purpledrill.openerp_env(
-            db_name=options.database,
-            without_demo=options.without_demo,
-            init=init,
-            update=update
-        ):
+        if options.database:
+            config['db_name'] = options.database
+        with self.enclose_openerp_api(options):
             config['skipif'] = options.skipif
             with self.coverage_report(options.cover):
                 self.execute_tests(
@@ -53,6 +48,22 @@ class Test(Command):
                     options.verbosity,
                     log=options.log in ['test', 'all']
                 )
+
+    @contextlib.contextmanager
+    def enclose_openerp_api(self, options):
+        init = options.init and dict.fromkeys(options.init.split(','), 1) or {}
+        update = options.update and dict.fromkeys(options.update.split(','), 1) or {}
+        need_env = not options.fast and not init and not update
+        if not need_env:
+            yield
+        else:
+            with purpledrill.openerp_env(
+                db_name=options.database,
+                without_demo=options.without_demo,
+                init=init,
+                update=update
+            ):
+                yield
 
     def execute_tests(self, tests, verbosity, log):
         if tests:
@@ -148,6 +159,12 @@ class Test(Command):
             default=None,
             help="""Set openerp config 'skipif' value. Can be used for
                 conditional skipping."""
+        )
+        parser.add_argument(
+            '--fast', dest='fast', action='store_true', default=False,
+            help="Try to not initialise OpenERP \
+                - make test runner much faster however does no effecft with \
+                  -i or -u"
         )
         parser.add_argument(
             '-v', '--verbosity', type=int, default=2,

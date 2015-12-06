@@ -6,7 +6,7 @@
     'author': "Csaba Palankai",
     'category': 'Extra Tools',
     'license': 'LGPL-3',
-    'version': '1.1',
+    'version': '1.2',
     'depends': ['base'],
     'data': [
     ],

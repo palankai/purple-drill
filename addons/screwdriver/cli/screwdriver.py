@@ -10,8 +10,10 @@ import textwrap
 
 from openerp.cli import Command
 from openerp.tools import config
+import openerp.release
 
 import purpledrill
+from .. import api
 
 _logger = logging.getLogger(__name__)
 
@@ -31,17 +33,40 @@ class Screwdriver(Command):
         else:
             update['screwdriver'] = 1
 
+        # First round, gather data, mark modules
         with purpledrill.openerp_env(
             db_name=options.database,
             without_demo=options.without_demo,
             init=init,
             update=update
         ) as env:
-            env.cr.autocommit(True)
-            applied = self.get_applied_tweaks(env, options.forced)
-            if tweaks:
-                sys.path.append(path)
-                self.apply(env, tweaks, exclude=applied)
+            addons = config.misc['addons']
+            modules = env['ir.module.module'].search([('name', 'in', addons.keys())])
+            for m in modules:
+                odoover = openerp.release.major_version
+                expected_version = api.get_version(odoover, addons[m.name])
+                # Field names are incorrect in the field definition of
+                # it.module.module.
+                installed_version = api.get_version(odoover, m.latest_version)
+                available_version = api.get_version(
+                    odoover, m.installed_version
+                )
+                action = api.get_action(
+                    expected_version=expected_version,
+                    available_version=available_version,
+                    installed_version=installed_version,
+                    state=m.state
+                )
+                if action:
+                    m.state_update(action, [m.state])
+                    _logger.info('Module %s marked %s', m.name, action)
+            env.cr.commit()
+            openerp.api.Environment.reset()
+            openerp.modules.registry.RegistryManager.new(
+                env.cr.dbname, update_module=True
+            )
+
+            _logger.info('Changes applied')
 
     def get_applied_tweaks(self, env, forced):
         Tweak = env["screwdriver.tweak"]
