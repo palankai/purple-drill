@@ -61,11 +61,8 @@ class Screwdriver(Command):
                     m.state_update(action, [m.state])
                     _logger.info('Module %s marked %s', m.name, action)
             env.cr.commit()
-            openerp.api.Environment.reset()
-            openerp.modules.registry.RegistryManager.new(
-                env.cr.dbname, update_module=True
-            )
-
+            upgrader = env['base.module.upgrade'].create({})
+            upgrader.upgrade_module()
             _logger.info('Changes applied')
 
     def get_applied_tweaks(self, env, forced):
